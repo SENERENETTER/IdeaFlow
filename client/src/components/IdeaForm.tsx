@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { insertIdeaSchema } from "@shared/schema";
 import type { Idea, InsertIdea } from "@shared/schema";
 import { z } from "zod";
+import { useEffect } from "react";
 
 const formSchema = insertIdeaSchema.extend({
   title: z.string().min(1, "Title is required"),
@@ -29,13 +30,35 @@ export default function IdeaForm({ open, onOpenChange, onSubmit, idea }: IdeaFor
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: idea?.title || "",
-      description: idea?.description || "",
-      status: idea?.status || "Draft",
-      color: idea?.color || "#3b82f6",
-      order: idea?.order || 0,
+      title: "",
+      description: "",
+      status: "Draft",
+      color: "#3b82f6",
+      order: 0,
     },
   });
+
+  // Reset form when idea prop changes (for editing)
+  useEffect(() => {
+    if (idea) {
+      form.reset({
+        title: idea.title,
+        description: idea.description,
+        status: idea.status,
+        color: idea.color,
+        order: idea.order,
+      });
+    } else {
+      // Reset to default values for new idea
+      form.reset({
+        title: "",
+        description: "",
+        status: "Draft",
+        color: "#3b82f6",
+        order: 0,
+      });
+    }
+  }, [idea, form]);
 
   const handleSubmit = (data: z.infer<typeof formSchema>) => {
     onSubmit(data);
